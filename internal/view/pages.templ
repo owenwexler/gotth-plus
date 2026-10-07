@@ -1,0 +1,18 @@
+package view
+
+templ ErrorPage() {
+	<div class="flex flex-col items-center justify-center space-y-2 m-2">
+		@ErrorText()
+		@ResetButton()
+	</div>
+}
+
+// Home is the splash page. The example app is the single @ExampleApp() line below.
+templ Home() {
+	@Layout("GOTTH+") {
+		<main class="flex flex-col items-center gap-8 px-4 pb-12">
+			@Title()
+			@ExampleApp()
+		</main>
+	}
+}
