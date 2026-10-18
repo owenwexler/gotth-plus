@@ -52,8 +52,9 @@ make seed     # POST /seed with a valid CSRF token; loads seedData.json
 ## Project structure
 
 ```
-cmd/server/         entry point: config, routes (newMux), middleware chain (buildHandler), shutdown
+cmd/server/         entry point: config, database, server start, graceful shutdown
 internal/
+  app/              routes (newMux) and middleware chain (buildHandler), shared by main and the tests
   config/           environment loading and validation
   csrf/             double-submit-cookie CSRF protection
   database/         SQLite connection (GORM)

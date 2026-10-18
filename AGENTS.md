@@ -1,6 +1,6 @@
 # AGENTS.md — GOTTH Stack (Go · Tailwind · Templ · HTMX)
 
-Guidance for AI coding agents and humans working in a GOTTH project. The first
+Guidance for AI coding agents and humans working in a GOTTH or GOTTH+ project. The first
 sections are generic and reusable; the last section ("Project-specific notes")
 is the only part that needs editing when you copy this file to a new project.
 
@@ -246,7 +246,7 @@ Before finishing a task, verify:
 - Dev workflow: `make setup` once, then `make dev` (Tailwind `--watch` plus `templ generate --watch` with its live-reload proxy on port 7331; templ starts the server for you). `make air` is the alternative (config in `air.toml`; excludes `*_templ.go`).
 - Before finishing: `make check` (generate, format, vet, unit + integration tests). `make test-e2e` runs the browser tests (`make e2e-install` once first).
 - Data: SQLite (`app.db`) via GORM (`gorm.io/driver/sqlite`, CGO). `model.Example` is a placeholder model with a UUID primary key and soft-delete (`DeletedAt`).
-- Wiring: routes are registered in `newMux` and the global middleware chain is built in `buildHandler`, both in `cmd/server/main.go`. Handlers are built in `internal/factory` (closures over repo/service/validator); `internal/handler` holds struct-based handlers (`HealthHandler`).
+- Wiring: routes are registered in `newMux` and the global middleware chain is built in `buildHandler`, both in `internal/app/app.go` (`app.NewHandler`, which `cmd/server/main.go` and the integration tests both call). Handlers are built in `internal/factory` (closures over repo/service/validator); `internal/handler` holds struct-based handlers (`HealthHandler`).
 - Middleware order (outermost first): request ID, security headers, compression, rate limit, cross-origin protection, body limit, CSRF.
 - Errors: htmx requests get an out of band toast with `HX-Reswap: none` (`respondWithToast` in `internal/factory`); `app.js` allows that swap for 4xx/5xx. Full pages get `view.ErrorPage`.
 - Pagination: `repository.ConstantPageSize = 10`; `Paginate` clamps page size to 100.

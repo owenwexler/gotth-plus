@@ -9,8 +9,10 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/owenwexler/gotth-plus/internal/app"
 	"github.com/owenwexler/gotth-plus/internal/config"
 	"github.com/owenwexler/gotth-plus/internal/database"
+	"github.com/owenwexler/gotth-plus/internal/model"
 )
 
 // TestMain moves to the project root, because the server reads static/ and seedData.json relative
@@ -33,7 +35,13 @@ func newTestApp(t *testing.T, env config.Env) (http.Handler, *gorm.DB) {
 	}
 	t.Cleanup(func() { closeDB(db) })
 
-	return buildHandler(env, newMux(env, db)), db
+	// only the seed handler migrates in the app, so a fresh test database needs every model migrated here.
+	// Add new models to this list.
+	if err := db.AutoMigrate(&model.Example{}); err != nil {
+		t.Fatalf("migrate test db: %v", err)
+	}
+
+	return app.NewHandler(env, db), db
 }
 
 var devEnv = config.Env{GoEnv: "development", Port: "0"}

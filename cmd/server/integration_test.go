@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/owenwexler/gotth-plus/internal/app"
 	"github.com/owenwexler/gotth-plus/internal/config"
 	"github.com/owenwexler/gotth-plus/internal/csrf"
 	"github.com/owenwexler/gotth-plus/internal/repository"
@@ -253,7 +254,7 @@ func TestHelloRejectsOversizedBody(t *testing.T) {
 	handler, _ := newTestApp(t, devEnv)
 	c := newClient(t, handler)
 
-	if got := c.hello(strings.Repeat("a", maxBodyBytes+1)).Code; got != http.StatusRequestEntityTooLarge {
+	if got := c.hello(strings.Repeat("a", app.MaxBodyBytes+1)).Code; got != http.StatusRequestEntityTooLarge {
 		t.Errorf("status %d, want 413", got)
 	}
 }
