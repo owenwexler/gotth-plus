@@ -128,7 +128,13 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 }
 
 // Flush lets streaming responses (e.g. templ rendering) reach the client early.
+// Until WriteHeader has run, the headers (Content-Encoding in particular) are not final, and flushing
+// would send them without it. templ flushes its buffers when a component finishes, even an empty one,
+// so this must be a no-op before the first write.
 func (c *compressWriter) Flush() {
+	if !c.wroteHeader {
+		return
+	}
 	if c.enc != nil {
 		_ = c.enc.Flush()
 	}

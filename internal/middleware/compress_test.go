@@ -80,3 +80,38 @@ func TestCompress(t *testing.T) {
 		})
 	}
 }
+
+// templ flushes its buffer when a component finishes, even an empty one, before anything is written.
+// The headers must still reach the client with Content-Encoding. A recorder can't show this (it keeps
+// the live header map), so this uses a real connection, where the first flush sends the headers.
+func TestFlushBeforeWriteKeepsEncodingHeader(t *testing.T) {
+	h := Compress(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.(http.Flusher).Flush()
+		io.WriteString(w, strings.Repeat("hello ", 200))
+	}))
+	srv := httptest.NewServer(h)
+	defer srv.Close()
+
+	// DisableCompression stops the client from decoding, so the raw headers and body are visible
+	client := &http.Client{Transport: &http.Transport{DisableCompression: true}}
+	req, _ := http.NewRequest("GET", srv.URL, nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if got := resp.Header.Get("Content-Encoding"); got != "gzip" {
+		t.Fatalf("Content-Encoding = %q, want gzip", got)
+	}
+	zr, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		t.Fatalf("body is not gzip: %v", err)
+	}
+	body, _ := io.ReadAll(zr)
+	if string(body) != strings.Repeat("hello ", 200) {
+		t.Error("decoded body mismatch")
+	}
+}
