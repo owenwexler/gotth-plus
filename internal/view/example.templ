@@ -41,7 +41,8 @@ templ HelloForm() {
 			<button type="submit" class={ styles.GenerateBigButtonClasses(), "relative" }>
 				<!-- The label stays in the flow (invisible while loading) so the button doesn't resize -->
 				<span class="[.htmx-request_&]:invisible">Say Hello</span>
-				<span class="htmx-indicator absolute inset-0 flex items-center justify-center">
+				<!-- aria-hidden keeps the spinner's "Loading" label out of the button's name ("Say Hello") -->
+				<span aria-hidden="true" class="htmx-indicator absolute inset-0 flex items-center justify-center">
 					@Spinner(16, 16)
 				</span>
 			</button>

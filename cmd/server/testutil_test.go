@@ -22,8 +22,15 @@ func TestMain(m *testing.M) {
 		fmt.Fprintln(os.Stderr, "chdir to project root:", err)
 		os.Exit(1)
 	}
-	os.Exit(m.Run())
+	code := m.Run()
+	for _, cleanup := range afterTests {
+		cleanup()
+	}
+	os.Exit(code)
 }
+
+// afterTests run once, after every test in the package (the e2e build adds the shared browser's shutdown).
+var afterTests []func()
 
 // newTestApp builds the real handler (every route behind every middleware) on a throwaway database.
 func newTestApp(t *testing.T, env config.Env) (http.Handler, *gorm.DB) {

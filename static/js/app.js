@@ -17,12 +17,13 @@ document.addEventListener('alpine:init', () => {
     })
 })
 
-// htmx skips swapping error responses by default.  Error toasts come back as 4xx/5xx with
-// HX-Reswap: none, so allow the swap (which only processes the out of band toast).
+// htmx skips swapping error responses by default.  The server marks the error responses meant for the
+// user with HX-Reswap: toasts come back with HX-Reswap: none (the swap only processes the out of band
+// toast), and error pages with HX-Reswap: innerHTML (they replace the request's target).
 document.addEventListener('htmx:beforeSwap', (e) => {
     const xhr = e.detail.xhr
 
-    if (xhr.status >= 400 && xhr.getResponseHeader('HX-Reswap') === 'none') {
+    if (xhr.status >= 400 && xhr.getResponseHeader('HX-Reswap')) {
         e.detail.shouldSwap = true
         e.detail.isError = false
 
@@ -102,10 +103,64 @@ document.addEventListener('alpine:init', () => {
     }))
 })
 
-// Forms marked data-reset-on-success are cleared once their request succeeds
-// (replaces hx-on::after-request, which needs eval).
+// Error toasts are swapped as if they were successes (see htmx:beforeSwap above), so htmx reports them as
+// successful.  Check the status to tell a real success apart.
+function succeeded(e) {
+    return Boolean(e.detail.xhr) && e.detail.xhr.status < 400
+}
+
+// Forms marked data-reset-on-success are cleared once their request succeeds, and keep what the user typed
+// when it fails (replaces hx-on::after-request, which needs eval).
 document.addEventListener('htmx:afterRequest', (e) => {
     const form = e.target.closest?.('form[data-reset-on-success]')
 
-    if (form && e.detail.successful) form.reset()
+    if (form && succeeded(e)) form.reset()
+})
+
+// Dialogs marked data-close-on-success close once their request succeeds.  On an error they stay open with
+// the input focused, so the user can fix it straight away.  (Don't also close them from the submit
+// button's click, or they close before the answer arrives.)
+document.addEventListener('htmx:afterRequest', (e) => {
+    const dialog = e.target.closest?.('dialog[data-close-on-success]')
+    if (!dialog) return
+
+    if (succeeded(e)) {
+        dialog.close()
+    } else {
+        dialog.querySelector('input')?.focus()
+    }
+})
+
+// Requests that never reach the server (offline, server down), or that fail without sending an error
+// toast of their own, would otherwise change nothing and say nothing.
+function showErrorToast(header, body) {
+    const toast = document.createElement('div')
+    // the same markup and classes as view.Toast, so it looks and dismisses itself the same way
+    toast.setAttribute('x-data', 'toast')
+    toast.setAttribute('x-show', 'show')
+    toast.setAttribute('x-transition.opacity', '')
+    toast.setAttribute('x-on:click', 'show = false')
+    toast.setAttribute('role', 'alert')
+    toast.className = 'w-72 rounded-lg shadow-lg bg-white border p-3 cursor-pointer border-red-600'
+
+    const title = document.createElement('p')
+    title.className = 'font-bold text-red-600'
+    title.textContent = header
+    const text = document.createElement('p')
+    text.className = 'text-sm text-gray-700'
+    text.textContent = body
+    toast.append(title, text)
+
+    document.getElementById('toasts')?.append(toast)
+}
+
+document.addEventListener('htmx:sendError', () => {
+    showErrorToast('Could not reach the server', 'Check your connection and try again')
+})
+
+document.addEventListener('htmx:responseError', (e) => {
+    // responses that carry their own toast or error page are swapped instead (see htmx:beforeSwap)
+    if (!e.detail.xhr.getResponseHeader('HX-Reswap')) {
+        showErrorToast('Something went wrong', 'Please try again')
+    }
 })

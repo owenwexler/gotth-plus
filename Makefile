@@ -3,15 +3,15 @@
 PLAYWRIGHT := go run github.com/mxschmitt/playwright-go/cmd/playwright
 
 .DEFAULT_GOAL := help
-.PHONY: help setup js generate css build run dev dev-templ dev-css air seed fmt vet test test-e2e e2e-install vuln check clean
+.PHONY: help setup js generate css build run dev dev-templ dev-css air seed fmt vet test e2e-install vuln check clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
 
-setup: ## First-time setup: .env, Go modules, the JS libraries and a first build
+setup: ## First-time setup: .env, Go modules, the JS libraries, the test browser and a first build
 	@test -f .env || (cp .env.example .env && echo "created .env from .env.example")
 	go mod download
-	$(MAKE) js generate css
+	$(MAKE) js generate css e2e-install
 
 js: ## Download the latest htmx, Alpine (CSP build) and hx-optimistic into static/js
 	./download-js.sh
@@ -50,14 +50,14 @@ fmt: ## Format Go and templ files
 vet: ## Vet everything, including the e2e tests
 	go vet -tags e2e ./...
 
-test: ## Unit and integration tests
-	go test -race ./...
+# The e2e build tag adds the browser tests to the unit and integration tests, wherever they live, so this
+# works for any layout. The browser tests need Chromium (`make e2e-install`, once); set AXE_CORE_JS to the
+# path of an axe.min.js to include the accessibility scan.
+test: generate css ## Unit, integration and end-to-end tests (needs `make js` and `make e2e-install` once)
+	go test -race -count=1 -tags e2e ./...
 
 e2e-install: ## Download the browser the end-to-end tests drive (once)
 	$(PLAYWRIGHT) install chromium
-
-test-e2e: generate css ## End-to-end tests in a real browser (needs `make js` and `make e2e-install`)
-	go test -tags e2e -run E2E -count=1 ./cmd/server/
 
 vuln: ## Check dependencies and the standard library for known vulnerabilities
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...

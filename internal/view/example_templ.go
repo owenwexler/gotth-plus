@@ -205,7 +205,7 @@ func HelloForm() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><!-- The label stays in the flow (invisible while loading) so the button doesn't resize --><span class=\"[.htmx-request_&]:invisible\">Say Hello</span> <span class=\"htmx-indicator absolute inset-0 flex items-center justify-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><!-- The label stays in the flow (invisible while loading) so the button doesn't resize --><span class=\"[.htmx-request_&]:invisible\">Say Hello</span><!-- aria-hidden keeps the spinner's \"Loading\" label out of the button's name (\"Say Hello\") --><span aria-hidden=\"true\" class=\"htmx-indicator absolute inset-0 flex items-center justify-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

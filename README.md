@@ -20,7 +20,7 @@ No Node, no npm, no bundler. Tailwind is the standalone CLI, and the three brows
 
 ### Prerequisites
 
-- Go 1.26+ and a C compiler (the SQLite driver uses CGO)
+- Go 1.27.3+ and a C compiler (the SQLite driver uses CGO)
 - [`templ`](https://templ.guide/quick-start/installation): `go install github.com/a-h/templ/cmd/templ@latest`
 - The [Tailwind CSS standalone CLI](https://tailwindcss.com/blog/standalone-cli) (v4) on your `PATH` as `tailwindcss`
 - `git`, `curl` and `make`
@@ -94,13 +94,21 @@ seedData.json       sample data
 ## Testing
 
 ```bash
-make test          # unit + integration (real routes and middleware, throwaway SQLite database)
-make e2e-install   # once: downloads Chromium for Playwright-Go
-make test-e2e      # the example app in a real browser
+make e2e-install   # once: downloads Chromium for Playwright-Go (`make setup` does this too)
+make test          # everything: unit, integration (real routes and middleware, throwaway SQLite
+                   # database) and end-to-end (a real browser)
 make check         # generate, format, vet, test
 ```
 
-The end-to-end tests are behind the `e2e` build tag, so `go test ./...` needs no browser.
+The end-to-end tests are behind the `e2e` build tag: `make test` adds the tag, while a plain `go test ./...`
+runs only the unit and integration tests and needs no browser.
+
+- `cmd/server/e2e_helpers_test.go` is the harness: one shared browser, a fresh browser context per test, and
+  helpers for routes, tabs, and console errors.
+- `cmd/server/e2e_generic_test.go` holds checks that apply to any app (visible focus rings, accessible toasts,
+  no third-party requests, no horizontal scroll, loading without JavaScript). Keep them when you replace the example.
+- The axe accessibility scan needs `axe-core`, which is not vendored. Run it with
+  `AXE_CORE_JS=/path/to/axe.min.js make test`, or copy `axe.min.js` to `cmd/server/testdata/`; otherwise it is skipped.
 
 ## Removing the example app
 
@@ -108,10 +116,10 @@ The example app (the hello form and the counter) is confined to:
 
 - `internal/view/example.templ` (and its generated `example_templ.go`), and the `@ExampleApp()` line in `internal/view/pages.templ`
 - `internal/factory/example.go`
-- the `POST /hello` route and `greetingSvc` in `cmd/server/main.go`
+- the `POST /hello` route and `greetingSvc` in `internal/app/app.go`
 - `GreetingService` in `internal/service/service.go` (and `service_test.go`) and `HelloRequest` in `internal/dto/dto.go`
 - the `counter` component in `static/js/app.js`
-- the hello and counter tests in `cmd/server/integration_test.go` and `cmd/server/e2e_test.go`
+- the hello and counter tests in `cmd/server/integration_test.go` and `cmd/server/e2e_test.go` (keep `e2e_helpers_test.go` and `e2e_generic_test.go`)
 
 `model.Example`, `repository/example.go` and `seedData.json` are placeholders for the seed route; rename them to your first real model.
 

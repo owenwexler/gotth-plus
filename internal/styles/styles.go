@@ -12,7 +12,7 @@ func GenerateSmallButtonClasses() string {
 }
 
 func GenerateIconButtonClasses() string {
-	return "text-black hover:text-gray-500 focus:outline-none cursor-pointer active:scale-95 transition-transform duration-[10ms]"
+	return "text-black hover:text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black cursor-pointer active:scale-95 transition-transform duration-[10ms]"
 }
 
 func GenerateSVGImageClasses() string {

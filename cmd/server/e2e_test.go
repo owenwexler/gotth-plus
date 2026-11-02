@@ -3,8 +3,6 @@
 package main
 
 import (
-	"net/http/httptest"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -16,78 +14,10 @@ import (
 // They are behind the e2e build tag so the normal suite stays fast and needs no browser:
 //
 //	make e2e-install   # once: downloads the browser
-//	make test-e2e
-
-// newPage starts the app on a random port and opens its home page in a fresh browser context.
-// Console errors (which is where Content-Security-Policy violations show up) are collected in the
-// returned function's result.
-func newPage(t *testing.T) (playwright.Page, func() []string) {
-	t.Helper()
-
-	for _, lib := range []string{"htmx.min.js", "alpine-csp.min.js", "hx-optimistic.min.js"} {
-		if _, err := os.Stat("static/js/" + lib); err != nil {
-			t.Fatalf("static/js/%s is missing: run `make js` first", lib)
-		}
-	}
-	if _, err := os.Stat("static/output.css"); err != nil {
-		t.Fatal("static/output.css is missing: run `make css` first")
-	}
-
-	handler, _ := newTestApp(t, devEnv)
-	server := httptest.NewServer(handler)
-	t.Cleanup(server.Close)
-
-	pw, err := playwright.Run()
-	if err != nil {
-		t.Fatalf("starting playwright (run `make e2e-install` first): %v", err)
-	}
-	t.Cleanup(func() { _ = pw.Stop() })
-
-	browser, err := pw.Chromium.Launch()
-	if err != nil {
-		t.Fatalf("launching chromium (run `make e2e-install` first): %v", err)
-	}
-	t.Cleanup(func() { _ = browser.Close() })
-
-	page, err := browser.NewPage()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var mu sync.Mutex
-	var consoleErrors []string
-	page.OnConsole(func(msg playwright.ConsoleMessage) {
-		if msg.Type() == "error" {
-			mu.Lock()
-			consoleErrors = append(consoleErrors, msg.Text())
-			mu.Unlock()
-		}
-	})
-	page.OnPageError(func(err error) {
-		mu.Lock()
-		consoleErrors = append(consoleErrors, err.Error())
-		mu.Unlock()
-	})
-
-	if _, err := page.Goto(server.URL); err != nil {
-		t.Fatal(err)
-	}
-
-	return page, func() []string {
-		mu.Lock()
-		defer mu.Unlock()
-		return append([]string(nil), consoleErrors...)
-	}
-}
-
-func expect(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-var assert = playwright.NewPlaywrightAssertions(5000)
+//	make test          # runs these with the unit and integration tests
+//
+// The harness (newPage, newE2EApp, expect, assert, ...) is in e2e_helpers_test.go; app-independent
+// checks (accessibility, layout, no third-party requests) are in e2e_generic_test.go.
 
 func TestE2ESplashPage(t *testing.T) {
 	page, consoleErrors := newPage(t)
@@ -207,4 +137,25 @@ func TestE2ECounter(t *testing.T) {
 	if errs := consoleErrors(); len(errs) > 0 {
 		t.Errorf("console errors:\n%s", strings.Join(errs, "\n"))
 	}
+}
+
+// TestE2EHelloFormServerDown: a request that never reaches the server shows an error toast (app.js handles
+// htmx:sendError), and the form works again once the server is back.
+func TestE2EHelloFormServerDown(t *testing.T) {
+	a := newE2EApp(t)
+	a.open(t, "/")
+	name := a.Page.GetByLabel("Your name")
+	submit := a.Page.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Say Hello"})
+	a.failRoute(t, "**/hello")
+
+	expect(t, name.Fill("Gopher"))
+	expect(t, submit.Click())
+
+	toast := a.Page.Locator("#toasts [role=alert]")
+	expect(t, assert.Locator(toast).ToContainText("Could not reach the server"))
+	expect(t, assert.Locator(a.Page.Locator("#greeting")).ToHaveText("Hello!"))
+
+	expect(t, a.Page.Unroute("**/hello"))
+	expect(t, submit.Click())
+	expect(t, assert.Locator(a.Page.Locator("#greeting")).ToHaveText("Hello Gopher!"))
 }

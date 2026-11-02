@@ -22,6 +22,9 @@ func logRejected(r *http.Request, msg string, err error) {
 func respondWithErrorPage(w http.ResponseWriter, r *http.Request, status int, msg string, err error) {
 	logError(r, msg, err)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// htmx skips swapping error statuses; app.js swaps them anyway when HX-Reswap says how, so the user
+	// sees this page in the request's target instead of nothing
+	w.Header().Set("HX-Reswap", "innerHTML")
 	w.WriteHeader(status)
 	_ = view.ErrorPage().Render(r.Context(), w)
 }
