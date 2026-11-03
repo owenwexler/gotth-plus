@@ -10,9 +10,10 @@ templ ErrorPage() {
 // Home is the splash page. The example app is the single @ExampleApp() line below.
 templ Home() {
 	@Layout("GOTTH+") {
-		<main class="flex flex-col items-center gap-8 px-4 pb-12">
+		<main class="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center gap-12 px-5 py-16 sm:gap-16 sm:px-8 sm:py-24">
 			@Title()
 			@ExampleApp()
+			<p class="text-center text-xs tracking-wide text-neutral-400">A stack ready for what’s next.</p>
 		</main>
 	}
 }

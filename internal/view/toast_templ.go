@@ -63,9 +63,9 @@ func Toast(args ToastArgs) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"w-72 rounded-lg shadow-lg bg-white border p-3 cursor-pointer",
-			templ.KV("border-red-600", args.Kind == ToastError),
-			templ.KV("border-black", args.Kind != ToastError),
+		var templ_7745c5c3_Var2 = []any{"w-72 rounded-xl shadow-lg bg-linear-to-br from-neutral-800 to-neutral-900 text-white border p-4 cursor-pointer",
+			templ.KV("border-red-400", args.Kind == ToastError),
+			templ.KV("border-white/20", args.Kind != ToastError),
 		}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
@@ -102,7 +102,7 @@ func Toast(args ToastArgs) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 = []any{"font-bold",
-			templ.KV("text-red-600", args.Kind == ToastError),
+			templ.KV("text-red-300", args.Kind == ToastError),
 		}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
@@ -139,14 +139,14 @@ func Toast(args ToastArgs) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if args.Body != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<p class=\"text-sm text-gray-700\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<p class=\"text-sm text-neutral-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(args.Body)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/toast.templ`, Line: 56, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/toast.templ`, Line: 56, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {

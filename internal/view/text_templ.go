@@ -29,7 +29,7 @@ func Title() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col items-center justify-center text-center space-y-1 mt-8 mb-1\"><h1 class=\"text-4xl font-bold\">GOTTH+</h1><p class=\"text-xl font-bold\">Go, Templ, Tailwind and HTMX, ready for production.</p><p class=\"text-sm text-gray-700\">Edit internal/view/pages.templ to get started.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"flex max-w-2xl flex-col items-center gap-6 text-center\"><h1 class=\"text-7xl font-semibold tracking-tighter sm:text-9xl\">GOTTH<span class=\"text-neutral-400\">+</span></h1><p class=\"max-w-lg text-lg leading-relaxed text-neutral-200 sm:text-xl\">Go, Templ, Tailwind and HTMX, ready for production.</p><p class=\"text-sm leading-relaxed text-neutral-400\">Make it yours. Edit <code class=\"text-neutral-200\">internal/view/pages.templ</code> to get started.</p><p class=\"text-sm leading-relaxed text-neutral-400\">Always open-source. <a class=\"text-sm leading-relaxed text-neutral-400 underline cursor-pointer\" href=\"https://github.com/owenwexler/gotth-plus\" target=\"_blank\" rel=\"noopener noreferrer\">Github</a></p></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -58,7 +58,7 @@ func ErrorText() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"text-black text-2xl\">We are sorry, something went wrong.</h1>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"text-white text-2xl\">We are sorry, something went wrong.</h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

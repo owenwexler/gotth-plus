@@ -66,3 +66,6 @@ check: generate fmt vet test ## Everything that must pass before a commit
 
 clean: ## Remove build output
 	rm -rf tmp static/output.css
+
+codegen:
+	go run github.com/mxschmitt/playwright-go/cmd/playwright codegen "http://localhost:$$(sed -n 's/^Port=//p' .env | tr -d '"')"
